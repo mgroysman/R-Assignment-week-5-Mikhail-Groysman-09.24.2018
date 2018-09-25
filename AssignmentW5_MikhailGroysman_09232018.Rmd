@@ -1,0 +1,85 @@
+---
+title: "R Week 5 Assignment Mikhail Groysman 09.23.2018"
+author: "Mikhail Groysman"
+date: "September 23, 2018"
+output: html_document
+---
+
+Let's read csv file
+
+```{r}
+
+adata<-read.csv(file="C://Data/AirlinesData.csv")
+
+adata
+```
+Let's get rid of a blank row and properly name first 2 columns
+
+Let's load libraries tidyr and dplyr and then run fill function to populate missing values
+
+```{r}
+
+adata<-subset(adata,!is.na(Los.Angeles))
+
+names(adata)[1:2]<-c("Airline","Status_flight")
+
+# install.packages(c("tidyr","dplyr"))
+
+library("tidyr")
+
+library("dplyr")
+
+adata$Airline[adata$Airline==""] <- NA
+
+adata1<-adata %>% fill(Airline)
+
+```
+
+Now, we can transpose the dataframe. We could also reformat new column "Destination" to replace "." with " ". We will aslo spread Status_flight column
+
+```{r}
+
+adata2 <- adata1 %>% gather(Destination, Num_flights, -c("Airline","Status_flight"))
+
+adata2$Destination <- gsub("\\.", " ", adata2$Destination)
+
+adata3 <- adata2 %>% spread(Status_flight, Num_flights)
+
+adata3
+```
+
+Let's rename column "on time" and resort our data.
+
+```{r}
+
+names(adata3)[4]<-c("on_time")
+
+adata3
+
+adata4<-adata3 %>% arrange(Airline, Destination)
+
+adata4
+
+```
+
+Let's perform our analysis
+
+```{r}
+
+adata4$ratio<-round(adata4$delayed/(adata4$delayed+adata4$on_time),digits=2)
+
+adata4
+
+a_sum <- adata4 %>% group_by(Airline) %>% summarize(sumd=sum(delayed),sumon=sum(on_time))
+
+a_sum
+
+a_sum$ratio <- round(a_sum$sumd/(a_sum$sumon+a_sum$sumd),digits=2)
+
+a_sum
+
+```
+
+Conclusion - Alaska company has more delayed flights than AM West
+
+
